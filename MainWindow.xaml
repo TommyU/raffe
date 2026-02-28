@@ -101,12 +101,20 @@
 
             <!-- 旋转球区域：无边框，直接在主背景上浮动 -->
             <Grid Grid.Row="0">
-                    <!-- 旋转名字 -->
+                    <!-- 旋转名字（仅非空闲时显示） -->
                     <controls:LotteryCarousel x:Name="Carousel"
+                        Visibility="{Binding IsNotIdle, Converter={StaticResource BoolToVis}}"
                         Participants="{Binding DisplayParticipants}"
                         IsSpinning="{Binding IsSpinning}"
                         BatchSize="{Binding CurrentBatchSize}"
                         StoppedParticipants="{Binding StoppedParticipants, Mode=OneWayToSource}"/>
+
+                    <!-- 空闲待机图片轮播（覆盖在旋转区域上方） -->
+                    <controls:IdleSlideshow
+                        Visibility="{Binding IsIdle, Converter={StaticResource BoolToVis}}"
+                        ImagePaths="{Binding SlideshowImagePaths}"
+                        IsActive="{Binding IsIdle}"
+                        IntervalSeconds="{Binding SlideshowIntervalSeconds}"/>
 
                     <!-- 倒计时覆盖层 -->
                     <Border Visibility="{Binding IsCountingDown, Converter={StaticResource BoolToVis}}"

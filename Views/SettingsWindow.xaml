@@ -229,6 +229,47 @@
                 </StackPanel>
             </TabItem>
 
+            <TabItem Header="待机图片">
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0" Foreground="#FFCC77" FontSize="13" Margin="0,0,0,12"
+                               Text="空闲等待时居中轮播图片，支持 JPG / PNG / BMP / GIF。"/>
+
+                    <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,10">
+                        <Button Content="＋ 添加图片" Command="{Binding AddSlideshowImageCommand}"
+                                Padding="14,6" Cursor="Hand"
+                                Background="#44FF6600" Foreground="#FFD700" BorderBrush="#88FFD700" BorderThickness="1"/>
+                        <Button Content="删除选中" Command="{Binding RemoveSlideshowImageCommand}"
+                                Padding="14,6" Margin="10,0,0,0" Cursor="Hand"
+                                Background="#44FF2200" Foreground="#FFD700" BorderBrush="#88FFD700" BorderThickness="1"/>
+                    </StackPanel>
+
+                    <ListBox Grid.Row="2"
+                             ItemsSource="{Binding SlideshowImagePaths}"
+                             SelectedItem="{Binding SelectedSlideshowImage}"
+                             Background="#1A0800" Foreground="#FFEECC"
+                             BorderBrush="#55FFD700" FontSize="13">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding}" TextTrimming="CharacterEllipsis" ToolTip="{Binding}"/>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+
+                    <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0,10,0,0">
+                        <TextBlock Text="切换间隔（秒）：" Foreground="#FFCC77" VerticalAlignment="Center"/>
+                        <TextBox Text="{Binding SlideshowIntervalSeconds, UpdateSourceTrigger=PropertyChanged}"
+                                 Width="60" Margin="8,0"/>
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+
             <TabItem Header="基本设置">
                 <StackPanel Margin="20" VerticalAlignment="Top">
                     <TextBlock Text="公司名称" Foreground="#FFCC77" Margin="0,0,0,6"/>

@@ -33,3 +33,5 @@ D:\windows-app\Raffe\obj\Debug\net6.0-windows\refint\Raffe.dll
 D:\windows-app\Raffe\obj\Debug\net6.0-windows\Raffe.pdb
 D:\windows-app\Raffe\obj\Debug\net6.0-windows\Raffe.genruntimeconfig.cache
 D:\windows-app\Raffe\obj\Debug\net6.0-windows\ref\Raffe.dll
+D:\windows-app\Raffe\obj\Debug\net6.0-windows\Controls\IdleSlideshow.baml
+D:\windows-app\Raffe\obj\Debug\net6.0-windows\Controls\IdleSlideshow.g.cs

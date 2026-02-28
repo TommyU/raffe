@@ -31,6 +31,11 @@ public partial class MainWindow : Window
             if (DataContext is MainViewModel vm)
                 vm.ToggleLottery();
         }
+        else if (e.Key == Key.F11)
+        {
+            e.Handled = true;
+            if (_isFullscreen) ExitFullscreen(); else EnterFullscreen();
+        }
         else if (e.Key == Key.Escape && _isFullscreen)
         {
             e.Handled = true;

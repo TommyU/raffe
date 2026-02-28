@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace Raffe.Models;
 
@@ -11,4 +12,7 @@ public class AppConfig
     public string SpinningMusicPath { get; set; } = "";
     public string WinnerMusicPath   { get; set; } = "";
     public double MusicVolume       { get; set; } = 0.7;
+
+    public List<string> SlideshowImagePaths    { get; set; } = new();
+    public int          SlideshowIntervalSeconds { get; set; } = 5;
 }

@@ -22,8 +22,12 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty] private string _winnerMusicPath   = "";
     [ObservableProperty] private double _musicVolume = 0.7;
 
-    public ObservableCollection<Participant> Participants { get; } = new();
-    public ObservableCollection<PrizeLevel> PrizeLevels { get; } = new();
+    [ObservableProperty] private int     _slideshowIntervalSeconds = 5;
+    [ObservableProperty] private string? _selectedSlideshowImage;
+
+    public ObservableCollection<string>      SlideshowImagePaths { get; } = new();
+    public ObservableCollection<Participant> Participants        { get; } = new();
+    public ObservableCollection<PrizeLevel>  PrizeLevels        { get; } = new();
 
     public SettingsViewModel(DataService dataService, ExcelImportService excelService)
     {
@@ -39,7 +43,12 @@ public partial class SettingsViewModel : ObservableObject
         DefaultMusicPath  = _dataService.Data.Config.DefaultMusicPath;
         SpinningMusicPath = _dataService.Data.Config.SpinningMusicPath;
         WinnerMusicPath   = _dataService.Data.Config.WinnerMusicPath;
-        MusicVolume       = _dataService.Data.Config.MusicVolume;
+        MusicVolume              = _dataService.Data.Config.MusicVolume;
+        SlideshowIntervalSeconds = _dataService.Data.Config.SlideshowIntervalSeconds;
+
+        SlideshowImagePaths.Clear();
+        foreach (var p in _dataService.Data.Config.SlideshowImagePaths ?? new())
+            SlideshowImagePaths.Add(p);
 
         Participants.Clear();
         foreach (var p in _dataService.Data.Participants)
@@ -58,7 +67,9 @@ public partial class SettingsViewModel : ObservableObject
         cfg.DefaultMusicPath  = DefaultMusicPath;
         cfg.SpinningMusicPath = SpinningMusicPath;
         cfg.WinnerMusicPath   = WinnerMusicPath;
-        cfg.MusicVolume       = MusicVolume;
+        cfg.MusicVolume              = MusicVolume;
+        cfg.SlideshowIntervalSeconds = SlideshowIntervalSeconds;
+        cfg.SlideshowImagePaths      = SlideshowImagePaths.ToList();
         _dataService.Data.Participants = Participants.ToList();
         _dataService.Data.PrizeLevels  = PrizeLevels.ToList();
         _dataService.Save();
@@ -72,6 +83,28 @@ public partial class SettingsViewModel : ObservableObject
             Filter = "音频文件|*.mp3;*.wav;*.wma;*.aac;*.flac|所有文件|*.*"
         };
         return dlg.ShowDialog() == true ? dlg.FileName : null;
+    }
+
+    [RelayCommand]
+    private void AddSlideshowImage()
+    {
+        var dlg = new OpenFileDialog
+        {
+            Title      = "选择待机图片",
+            Filter     = "图片文件|*.jpg;*.jpeg;*.png;*.bmp;*.gif|所有文件|*.*",
+            Multiselect = true,
+        };
+        if (dlg.ShowDialog() != true) return;
+        foreach (var file in dlg.FileNames)
+            if (!SlideshowImagePaths.Contains(file))
+                SlideshowImagePaths.Add(file);
+    }
+
+    [RelayCommand]
+    private void RemoveSlideshowImage()
+    {
+        if (SelectedSlideshowImage != null)
+            SlideshowImagePaths.Remove(SelectedSlideshowImage);
     }
 
     [RelayCommand] private void BrowseDefaultMusic()  { var f = BrowseMusic(); if (f != null) DefaultMusicPath  = f; }

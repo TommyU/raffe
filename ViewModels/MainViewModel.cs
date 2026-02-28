@@ -18,6 +18,8 @@ public partial class MainViewModel : ObservableObject, IDisposable
     private readonly ExcelImportService _excelService;
     private readonly MusicService _musicService = new();
     private DispatcherTimer? _countdownTimer;
+    // 一旦开始抽奖，不再回到待机图片状态
+    private bool _lotteryStarted;
 
     [ObservableProperty] private string _companyName = "某某公司";
     [ObservableProperty] private int _year = DateTime.Now.Year;
@@ -27,27 +29,45 @@ public partial class MainViewModel : ObservableObject, IDisposable
     [ObservableProperty] private bool _isSpinning;
     [ObservableProperty] private bool _isCountingDown;
     [ObservableProperty] private string _countdownText = "";
+    [ObservableProperty] private bool _isIdle = true;
+    [ObservableProperty] private bool _isNotIdle;
     [ObservableProperty] private int _currentBatchSize = 1;
     [ObservableProperty] private bool _showWinners;
     [ObservableProperty] private bool _showResults;
+
+    [ObservableProperty] private IReadOnlyList<string> _slideshowImagePaths = new List<string>();
+    [ObservableProperty] private int _slideshowIntervalSeconds = 5;
     [ObservableProperty] private IReadOnlyList<PrizeResultGroup> _resultGroups = new List<PrizeResultGroup>();
 
-    // Called by source generator when IsSpinning changes
     partial void OnIsSpinningChanged(bool value)
     {
+        UpdateIdleState();
         if (value)
             _musicService.Play(_dataService.Data.Config.SpinningMusicPath);
-        // when stopping, keep current music until ShowWinners decides
     }
 
-    // Called by source generator when ShowWinners changes
+    partial void OnIsCountingDownChanged(bool value) => UpdateIdleState();
+
+    partial void OnIsIdleChanged(bool value)
+    {
+        if (value)
+            _musicService.Play(_dataService.Data.Config.DefaultMusicPath);
+    }
+
     partial void OnShowWinnersChanged(bool value)
     {
+        UpdateIdleState();
         var cfg = _dataService.Data.Config;
         if (value)
             _musicService.Play(cfg.WinnerMusicPath, loop: false);
         else
             _musicService.Play(cfg.DefaultMusicPath);
+    }
+
+    private void UpdateIdleState()
+    {
+        IsIdle    = !_lotteryStarted && !IsSpinning && !IsCountingDown && !ShowWinners;
+        IsNotIdle = !IsIdle;
     }
 
     public ObservableCollection<Participant> Winners { get; } = new();
@@ -80,6 +100,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
         IsSpinning = false;
         ShowWinners = false;
         ShowResults = false;
+        _lotteryStarted = false;
         Winners.Clear();
         StoppedParticipants = null;
 
@@ -100,6 +121,10 @@ public partial class MainViewModel : ObservableObject, IDisposable
         var cfg = _dataService.Data.Config;
         _musicService.Volume = cfg.MusicVolume;
         _musicService.Play(cfg.DefaultMusicPath);
+
+        SlideshowImagePaths    = cfg.SlideshowImagePaths?.ToList() ?? new List<string>();
+        SlideshowIntervalSeconds = cfg.SlideshowIntervalSeconds;
+        UpdateIdleState();
     }
 
     public void Dispose() => _musicService.Dispose();
@@ -192,6 +217,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
     private void StartCountdown()
     {
+        _lotteryStarted = true;
         _countdownTimer?.Stop();
         var value = 3;
         CountdownText = value.ToString();

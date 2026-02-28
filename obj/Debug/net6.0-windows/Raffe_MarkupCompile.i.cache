@@ -10,11 +10,11 @@ none
 false
 TRACE;DEBUG;NET;NET6_0;NETCOREAPP
 D:\windows-app\Raffe\App.xaml
-3-868972272
+4691503479
 
-192020508266
+20-690854939
 201137923379
-Controls\LotteryCarousel.xaml;MainWindow.xaml;Views\SettingsWindow.xaml;
+Controls\IdleSlideshow.xaml;Controls\LotteryCarousel.xaml;MainWindow.xaml;Views\SettingsWindow.xaml;
 
-True
+False
 
