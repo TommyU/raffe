@@ -108,20 +108,34 @@
                         BatchSize="{Binding CurrentBatchSize}"
                         StoppedParticipants="{Binding StoppedParticipants, Mode=OneWayToSource}"/>
 
-                    <!-- 中心指示器（仅旋转时显示） -->
-                    <Border Visibility="{Binding IsSpinning, Converter={StaticResource BoolToVis}}"
-                            HorizontalAlignment="Center" VerticalAlignment="Center"
-                            Width="120" Height="44" CornerRadius="22"
-                            BorderBrush="#88FFD700" BorderThickness="1.5">
+                    <!-- 倒计时覆盖层 -->
+                    <Border Visibility="{Binding IsCountingDown, Converter={StaticResource BoolToVis}}"
+                            HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
                         <Border.Background>
-                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                                <GradientStop Color="#44FF8800" Offset="0"/>
-                                <GradientStop Color="#44FFD700" Offset="1"/>
-                            </LinearGradientBrush>
+                            <RadialGradientBrush Center="0.5,0.3" RadiusX="0.8" RadiusY="0.7">
+                                <GradientStop Color="#3D0C00" Offset="0"/>
+                                <GradientStop Color="#1A0800" Offset="1"/>
+                            </RadialGradientBrush>
                         </Border.Background>
-                        <TextBlock Text="抽 奖 中" FontSize="16" FontWeight="Bold"
-                                   Foreground="#FFD700" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                   Effect="{StaticResource TextGlow}"/>
+                        <!-- 圆圈 + 数字 -->
+                        <Border Width="300" Height="300" CornerRadius="150"
+                                HorizontalAlignment="Center" VerticalAlignment="Center"
+                                BorderBrush="#BBFFD700" BorderThickness="5">
+                            <Border.Background>
+                                <RadialGradientBrush>
+                                    <GradientStop Color="#55FF8800" Offset="0"/>
+                                    <GradientStop Color="#22FF4400" Offset="1"/>
+                                </RadialGradientBrush>
+                            </Border.Background>
+                            <Border.Effect>
+                                <DropShadowEffect Color="#FFD700" BlurRadius="40" ShadowDepth="0" Opacity="0.55"/>
+                            </Border.Effect>
+                            <TextBlock Text="{Binding CountdownText}"
+                                       FontSize="190" FontWeight="Bold"
+                                       Foreground="#FFD700"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                                       Effect="{StaticResource TitleGlow}"/>
+                        </Border>
                     </Border>
 
                     <!-- 中奖弹出层 -->

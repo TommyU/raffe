@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
+using System.Windows.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Win32;
@@ -16,6 +17,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
     private readonly DataService _dataService;
     private readonly ExcelImportService _excelService;
     private readonly MusicService _musicService = new();
+    private DispatcherTimer? _countdownTimer;
 
     [ObservableProperty] private string _companyName = "某某公司";
     [ObservableProperty] private int _year = DateTime.Now.Year;
@@ -23,6 +25,8 @@ public partial class MainViewModel : ObservableObject, IDisposable
     [ObservableProperty] private string _currentPrizeName = "";
     [ObservableProperty] private string _lastWonPrizeName = "";
     [ObservableProperty] private bool _isSpinning;
+    [ObservableProperty] private bool _isCountingDown;
+    [ObservableProperty] private string _countdownText = "";
     [ObservableProperty] private int _currentBatchSize = 1;
     [ObservableProperty] private bool _showWinners;
     [ObservableProperty] private bool _showResults;
@@ -138,6 +142,8 @@ public partial class MainViewModel : ObservableObject, IDisposable
     [RelayCommand]
     internal void ToggleLottery()
     {
+        if (IsCountingDown) return;
+
         if (IsSpinning)
         {
             IsSpinning = false;
@@ -181,7 +187,32 @@ public partial class MainViewModel : ObservableObject, IDisposable
         var perBatch = (int)Math.Ceiling((double)currentPrize.MaxWinners / Math.Max(1, currentPrize.BatchCount));
         var remaining = currentPrize.MaxWinners - alreadyDrawn;
         CurrentBatchSize = Math.Min(perBatch, Math.Min(remaining, available.Count));
-        IsSpinning = true;
+        StartCountdown();
+    }
+
+    private void StartCountdown()
+    {
+        _countdownTimer?.Stop();
+        var value = 3;
+        CountdownText = value.ToString();
+        IsCountingDown = true;
+
+        _countdownTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+        _countdownTimer.Tick += (_, _) =>
+        {
+            value--;
+            if (value > 0)
+            {
+                CountdownText = value.ToString();
+            }
+            else
+            {
+                _countdownTimer!.Stop();
+                IsCountingDown = false;
+                IsSpinning = true;
+            }
+        };
+        _countdownTimer.Start();
     }
 
     private void ConfirmWinners(List<Participant> selectedWinners)

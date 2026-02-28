@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -52,229 +53,242 @@ public partial class LotteryCarousel : UserControl
         set => SetValue(BatchSizeProperty, value);
     }
 
-    private List<Participant> _participantList = new();
-    private List<(TextBlock tb, Border container, Color baseColor)> _items = new();
-    private double _currentAngle;
-    private const int ItemCount = 20;
+    // ── 3D 陨石带数据 ──────────────────────────────────────────────
+    private class AsteroidItem
+    {
+        public Participant Participant = null!;
+        public double X3d;   // 3D 空间横向偏移
+        public double Y3d;   // 3D 空间纵向偏移
+        public double Z;     // 深度：大 = 远处，小 = 近处
+        public Color BaseColor;
+        public Border  Border  = null!;
+        public TextBlock TextBlock = null!;
+    }
 
     private static readonly Color[] BallColors =
     {
-        Color.FromRgb(255, 80, 80),
-        Color.FromRgb(255, 160, 40),
-        Color.FromRgb(255, 220, 0),
-        Color.FromRgb(80, 220, 100),
-        Color.FromRgb(40, 180, 255),
-        Color.FromRgb(180, 80, 255),
+        Color.FromRgb(255,  80,  80),
+        Color.FromRgb(255, 160,  40),
+        Color.FromRgb(255, 220,   0),
+        Color.FromRgb( 80, 220, 100),
+        Color.FromRgb( 40, 180, 255),
+        Color.FromRgb(180,  80, 255),
         Color.FromRgb(255, 100, 180),
     };
+
+    // 透视参数
+    private const double FocalLength  = 400.0;
+    private const double MaxZ         = 2000.0;
+    private const double MinZ         = 180.0;
+    private const double MaxSpread    = 310.0;  // x3d/y3d 最大半径
+    private const int    AsteroidCount = 40;    // 同时在场的名字数
+    private const double SpinSpeed    = 28.0;   // 旋转时 z 每帧减少量
+
+    private List<Participant> _participantList = new();
+    private List<AsteroidItem> _asteroids      = new();
+    private int    _nextParticipantIndex;
+    private int    _colorIndex;
+    private double _speed;
     private DispatcherTimer? _timer;
+    private readonly Random _rng = new();
 
     public LotteryCarousel()
     {
         InitializeComponent();
-        Loaded += OnLoaded;
-        SizeChanged += OnSizeChanged;
+        Loaded      += (_, _) => RefreshParticipants();
+        SizeChanged += (_, _) => UpdatePositions();
     }
 
     private static void OnParticipantsChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         var ctrl = (LotteryCarousel)d;
-        if (!ctrl.IsSpinning)
-            ctrl.RefreshParticipants();
+        if (!ctrl.IsSpinning) ctrl.RefreshParticipants();
     }
 
     private static void OnIsSpinningChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         var ctrl = (LotteryCarousel)d;
-        if ((bool)e.NewValue)
-            ctrl.StartSpin();
-        else
-            ctrl.StopSpin();
+        if ((bool)e.NewValue) ctrl.StartSpin();
+        else ctrl.StopSpin();
     }
 
-    private void OnLoaded(object sender, RoutedEventArgs e) => RefreshParticipants();
-    private void OnSizeChanged(object sender, SizeChangedEventArgs e) => UpdatePositions();
+    // ── 初始化 ──────────────────────────────────────────────────────
 
     private void RefreshParticipants()
     {
         _participantList.Clear();
-        if (Participants is IEnumerable enumerable)
-        {
-            foreach (var item in enumerable)
-            {
-                if (item is Participant p)
-                    _participantList.Add(p);
-            }
-        }
+        if (Participants is IEnumerable en)
+            foreach (var item in en)
+                if (item is Participant p) _participantList.Add(p);
 
         CarouselCanvas.Children.Clear();
-        _items.Clear();
+        _asteroids.Clear();
+        _nextParticipantIndex = 0;
+        _colorIndex           = 0;
 
         if (_participantList.Count == 0) return;
 
-        // Each person appears exactly once; cap at ItemCount for very large lists
-        var displayList = _participantList.Count <= ItemCount
-            ? new List<Participant>(_participantList)
-            : _participantList.GetRange(0, ItemCount);
-
-        _ballColorIndex = 0;
-        foreach (var p in displayList)
+        for (var i = 0; i < AsteroidCount; i++)
         {
-            var (tb, border, color) = CreateBallItem(p);
-            _items.Add((tb, border, color));
-            CarouselCanvas.Children.Add(border);
+            // 均匀分布在 z 轴深度上，保证初始时各处都有名字
+            var z    = MinZ + (MaxZ - MinZ) * (i + 1.0) / AsteroidCount;
+            var item = CreateAsteroid(_participantList[_nextParticipantIndex % _participantList.Count], z);
+            _nextParticipantIndex++;
+            _asteroids.Add(item);
+            CarouselCanvas.Children.Add(item.Border);
         }
 
         UpdatePositions();
     }
 
-    private int _ballColorIndex;
-
-    private (TextBlock, Border, Color) CreateBallItem(Participant p)
+    private AsteroidItem CreateAsteroid(Participant p, double z)
     {
-        var baseColor = BallColors[_ballColorIndex % BallColors.Length];
-        _ballColorIndex++;
+        var angle  = _rng.NextDouble() * Math.PI * 2;
+        var radius = Math.Sqrt(_rng.NextDouble()) * MaxSpread; // sqrt 均匀分布在圆面上
+        var color  = BallColors[_colorIndex++ % BallColors.Length];
 
         var tb = new TextBlock
         {
-            Text = p.Name,
-            FontSize = 20,
-            FontWeight = FontWeights.Bold,
-            Foreground = new SolidColorBrush(Colors.White),
-            Tag = p,
+            Text                = p.Name,
+            FontSize            = 18,
+            FontWeight          = FontWeights.Bold,
+            Foreground          = Brushes.White,
             HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center
+            VerticalAlignment   = VerticalAlignment.Center,
         };
         var border = new Border
         {
-            Child = tb,
-            Tag = p,
-            Padding = new Thickness(14, 8, 14, 8),
-            CornerRadius = new CornerRadius(22),
-            Background = new SolidColorBrush(Color.FromArgb(120, baseColor.R, baseColor.G, baseColor.B)),
-            BorderBrush = new SolidColorBrush(Color.FromArgb(160, baseColor.R, baseColor.G, baseColor.B)),
-            BorderThickness = new Thickness(1.5)
+            Child           = tb,
+            Tag             = p,
+            Padding         = new Thickness(14, 8, 14, 8),
+            CornerRadius    = new CornerRadius(22),
+            BorderThickness = new Thickness(1.5),
         };
-        return (tb, border, baseColor);
+
+        return new AsteroidItem
+        {
+            Participant = p,
+            X3d         = Math.Cos(angle) * radius,
+            Y3d         = Math.Sin(angle) * radius,
+            Z           = z,
+            BaseColor   = color,
+            Border      = border,
+            TextBlock   = tb,
+        };
     }
+
+    // ── 每帧推进 ────────────────────────────────────────────────────
+
+    private void AdvanceTick()
+    {
+        foreach (var item in _asteroids)
+        {
+            item.Z -= _speed;
+            if (item.Z >= MinZ) continue;
+
+            // 飞出镜头 → 重置到远端，换下一个参与者
+            item.Participant       = _participantList[_nextParticipantIndex % _participantList.Count];
+            item.TextBlock.Text    = item.Participant.Name;
+            item.Border.Tag        = item.Participant;
+            _nextParticipantIndex++;
+
+            item.Z   = MaxZ;
+            var ang  = _rng.NextDouble() * Math.PI * 2;
+            var r    = Math.Sqrt(_rng.NextDouble()) * MaxSpread;
+            item.X3d = Math.Cos(ang) * r;
+            item.Y3d = Math.Sin(ang) * r;
+        }
+
+        UpdatePositions();
+    }
+
+    // ── 渲染：透视投影 ───────────────────────────────────────────────
 
     private void UpdatePositions()
     {
-        if (_items.Count == 0) return;
+        if (_asteroids.Count == 0 || ActualWidth == 0) return;
 
-        var centerX = ActualWidth / 2;
-        var centerY = ActualHeight / 2;
+        var cx = ActualWidth  / 2;
+        var cy = ActualHeight / 2;
 
-        var radiusX = Math.Max(100, ActualWidth * 0.40);
-        var radiusY = Math.Max(60,  ActualHeight * 0.32);
+        // 按 Z 降序排序（远的先画，近的覆盖在上）
+        var sorted = _asteroids.OrderByDescending(a => a.Z).ToList();
 
-        for (var i = 0; i < _items.Count; i++)
+        for (var i = 0; i < sorted.Count; i++)
         {
-            var angle = _currentAngle + 2 * Math.PI * i / _items.Count;
-            var depthScale = 0.5 + 0.5 * Math.Sin(angle * 2);
-            var r = radiusX * (0.6 + 0.4 * depthScale);
-            var x = centerX + r * Math.Cos(angle);
-            var y = centerY + radiusY * Math.Sin(angle);
+            var item  = sorted[i];
+            var invZ  = FocalLength / item.Z;
+            var scale = Math.Clamp(invZ, 0.05, 3.0);
+            var sx    = cx + item.X3d * invZ;
+            var sy    = cy + item.Y3d * invZ;
 
-            var frontFactor = (Math.Cos(angle) + 1) / 2;
-            var scale = 0.6 + 0.4 * frontFactor;
-            var opacity = 0.5 + 0.5 * frontFactor;
+            // tNear: 0 = 远端, 1 = 近端
+            var tNear   = 1.0 - Math.Clamp((item.Z - MinZ) / (MaxZ - MinZ), 0.0, 1.0);
+            var opacity = 0.08 + 0.92 * tNear;
+            var alpha   = (byte)(40 + (int)(tNear * 180));
 
-            var (tb, border, baseColor) = _items[i];
-            border.RenderTransform = new ScaleTransform(scale, scale);
-            border.RenderTransformOrigin = new Point(0.5, 0.5);
-            border.Opacity = opacity;
+            item.Border.RenderTransform       = new ScaleTransform(scale, scale);
+            item.Border.RenderTransformOrigin = new Point(0.5, 0.5);
+            item.Border.Opacity               = opacity;
+            item.Border.Background            = new SolidColorBrush(Color.FromArgb(alpha,
+                item.BaseColor.R, item.BaseColor.G, item.BaseColor.B));
+            item.Border.BorderBrush           = new SolidColorBrush(Color.FromArgb(
+                (byte)Math.Min(255, alpha + 55), item.BaseColor.R, item.BaseColor.G, item.BaseColor.B));
 
-            var alpha = (byte)(80 + (int)(frontFactor * 120));
-            border.Background = new SolidColorBrush(Color.FromArgb(alpha, baseColor.R, baseColor.G, baseColor.B));
-            border.BorderBrush = new SolidColorBrush(Color.FromArgb((byte)(alpha + 40), baseColor.R, baseColor.G, baseColor.B));
+            item.Border.Effect = tNear > 0.65
+                ? new DropShadowEffect { Color = item.BaseColor, BlurRadius = 22, ShadowDepth = 0, Opacity = 0.9 }
+                : null;
 
-            if (frontFactor > 0.75)
-            {
-                border.Effect = new DropShadowEffect
-                {
-                    Color = baseColor,
-                    BlurRadius = 22,
-                    ShadowDepth = 0,
-                    Opacity = 0.9
-                };
-            }
-            else
-            {
-                border.Effect = null;
-            }
-
-            Canvas.SetLeft(border, x - 60);
-            Canvas.SetTop(border, y - 18);
+            // 以 (sx, sy) 为视觉中心定位（border 自然尺寸约 120×36）
+            Canvas.SetLeft(item.Border, sx - 60);
+            Canvas.SetTop(item.Border,  sy - 18);
+            Panel.SetZIndex(item.Border, i); // i=0 最远，i=N-1 最近
         }
     }
+
+    // ── 开始 / 停止 ─────────────────────────────────────────────────
 
     private void StartSpin()
     {
         _timer?.Stop();
         StoppedParticipants = null;
+        _speed = SpinSpeed;
         RefreshParticipants();
-        if (_items.Count == 0) return;
+        if (_asteroids.Count == 0) return;
         _timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(16) };
-        _timer.Tick += (s, e) =>
-        {
-            _currentAngle += 0.08;
-            UpdatePositions();
-        };
+        _timer.Tick += (_, _) => AdvanceTick();
         _timer.Start();
     }
 
     private void StopSpin()
     {
         _timer?.Stop();
-        if (_items.Count == 0) return;
+        if (_asteroids.Count == 0) return;
+        var decel = _speed;
         _timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(16) };
-        var decel = 0.08;
-        _timer.Tick += (s, e) =>
+        _timer.Tick += (_, _) =>
         {
-            decel *= 0.96;
-            _currentAngle += decel;
-            UpdatePositions();
-            if (decel < 0.0015)
-            {
-                _timer.Stop();
-                SnapToCenter();
-            }
+            decel  *= 0.94;
+            _speed  = decel;
+            AdvanceTick();
+            if (decel >= 0.5) return;
+            _timer!.Stop();
+            _speed = 0;
+            PickWinners();
         };
         _timer.Start();
     }
 
-    private void SnapToCenter()
+    private void PickWinners()
     {
-        if (_items.Count == 0) return;
-        var step = 2 * Math.PI / _items.Count;
-        var normalized = ((_currentAngle % step) + step) % step;
-        if (normalized > step / 2) normalized -= step;
-        _currentAngle -= normalized;
-        UpdatePositions();
-
-        var centerIdx = (int)Math.Round(-_currentAngle / step) % _items.Count;
-        if (centerIdx < 0) centerIdx += _items.Count;
-
-        var batchCount = Math.Max(1, Math.Min(BatchSize, _items.Count));
-        var indices = new List<int> { centerIdx };
-        for (var d = 1; d <= _items.Count / 2; d++)
-        {
-            indices.Add((centerIdx + d) % _items.Count);
-            if (d != 0) indices.Add((centerIdx - d + _items.Count) % _items.Count);
-        }
-
-        var winners = new List<Participant>();
-        var seen = new HashSet<Participant>();
-        foreach (var idx in indices)
-        {
-            if (_items[idx].tb.Tag is Participant p && seen.Add(p))
-            {
-                winners.Add(p);
-                if (winners.Count >= batchCount) break;
-            }
-        }
-
+        if (_asteroids.Count == 0) return;
+        var batchCount = Math.Max(1, Math.Min(BatchSize, _participantList.Count));
+        var winners = _asteroids
+            .OrderBy(a => a.Z)
+            .Select(a => a.Participant)
+            .Distinct()
+            .Take(batchCount)
+            .ToList();
         if (winners.Count > 0)
             StoppedParticipants = winners;
     }
