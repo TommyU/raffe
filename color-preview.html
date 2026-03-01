@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>背景色方案预览 - 多色系</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Microsoft YaHei', sans-serif;
+      background: #111;
+      color: #ccc;
+      padding: 24px;
+    }
+    h1 {
+      color: #FFD700;
+      margin-bottom: 12px;
+      font-size: 18px;
+    }
+    .sub { font-size: 12px; color: #888; margin-bottom: 20px; }
+    .scheme {
+      margin-bottom: 20px;
+      border: 1px solid #333;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .scheme-label {
+      padding: 8px 12px;
+      background: #222;
+      font-size: 13px;
+    }
+    .red { color: #FF6B6B; }
+    .blue { color: #6BB3FF; }
+    .yellow { color: #FFD93D; }
+    .preview {
+      height: 100px;
+      position: relative;
+      border-radius: 0 0 8px 8px;
+    }
+    .preview::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 80% 70% at 50% 30%, var(--center) 0%, var(--edge) 100%);
+    }
+    .preview-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 15px;
+      font-weight: bold;
+      color: var(--text-color, #FFD700);
+      text-shadow: 0 0 20px rgba(255,255,255,0.3);
+    }
+  </style>
+</head>
+<body>
+  <h1>🎨 背景色方案预览 - 更鲜艳·多色系</h1>
+  <p class="sub">选好后告诉我方案编号即可施工</p>
+
+  <h3 style="color:#FF6B6B; margin:16px 0 8px;">🔴 红色系（更鲜艳）</h3>
+  <div class="scheme">
+    <div class="scheme-label"><span class="red">R1</span> 中国红 - 喜庆饱满</div>
+    <div class="preview" style="--center: #B83020; --edge: #6B1818;">
+      <span class="preview-text">港电商贸 2026 年度年会</span>
+    </div>
+  </div>
+  <div class="scheme">
+    <div class="scheme-label"><span class="red">R2</span> 朱砂红 - 明亮活力</div>
+    <div class="preview" style="--center: #CC4030; --edge: #8B2020;">
+      <span class="preview-text">港电商贸 2026 年度年会</span>
+    </div>
+  </div>
+  <div class="scheme">
+    <div class="scheme-label"><span class="red">R3</span> 橙红 - 暖调喜庆</div>
+    <div class="preview" style="--center: #D85C28; --edge: #8B3018;">
+      <span class="preview-text">港电商贸 2026 年度年会</span>
+    </div>
+  </div>
+
+  <h3 style="color:#6BB3FF; margin:16px 0 8px;">🔵 蓝色系</h3>
+  <div class="scheme">
+    <div class="scheme-label"><span class="blue">B1</span> 深蓝 - 沉稳专业</div>
+    <div class="preview" style="--center: #2060A0; --edge: #102040;">
+      <span class="preview-text">港电商贸 2026 年度年会</span>
+    </div>
+  </div>
+  <div class="scheme">
+    <div class="scheme-label"><span class="blue">B2</span> 宝石蓝 - 华丽</div>
+    <div class="preview" style="--center: #2870C0; --edge: #103050;">
+      <span class="preview-text">港电商贸 2026 年度年会</span>
+    </div>
+  </div>
+  <div class="scheme">
+    <div class="scheme-label"><span class="blue">B3</span> 青蓝 - 清新</div>
+    <div class="preview" style="--center: #3088C8; --edge: #184060;">
+      <span class="preview-text">港电商贸 2026 年度年会</span>
+    </div>
+  </div>
+
+  <h3 style="color:#FFD93D; margin:16px 0 8px;">🟡 黄色/金色系</h3>
+  <div class="scheme">
+    <div class="scheme-label"><span class="yellow">Y1</span> 金棕 - 高端奢华</div>
+    <div class="preview" style="--center: #C8A030; --edge: #604818;">
+      <span class="preview-text" style="color:#2A2000; text-shadow:0 0 12px rgba(255,215,0,0.5);">港电商贸 2026 年度年会</span>
+    </div>
+  </div>
+  <div class="scheme">
+    <div class="scheme-label"><span class="yellow">Y2</span> 琥珀 - 温暖明亮</div>
+    <div class="preview" style="--center: #D89038; --edge: #705020;">
+      <span class="preview-text" style="color:#2A2000;">港电商贸 2026 年度年会</span>
+    </div>
+  </div>
+  <div class="scheme">
+    <div class="scheme-label"><span class="yellow">Y3</span> 暗金 - 低调奢华</div>
+    <div class="preview" style="--center: #A07828; --edge: #503818;">
+      <span class="preview-text">港电商贸 2026 年度年会</span>
+    </div>
+  </div>
+
+  <h3 style="color:#88CC88; margin:16px 0 8px;">🟣 紫色系（附加）</h3>
+  <div class="scheme">
+    <div class="scheme-label" style="color:#B88AEE;">P1 深紫 - 神秘高级</div>
+    <div class="preview" style="--center: #6040A0; --edge: #281840;">
+      <span class="preview-text">港电商贸 2026 年度年会</span>
+    </div>
+  </div>
+</body>
+</html>

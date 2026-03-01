@@ -1,8 +1,11 @@
 using System;
+using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Interop;
+using System.Windows.Shell;
+using Raffe.Models;
 using Raffe.ViewModels;
 
 namespace Raffe;
@@ -10,6 +13,14 @@ namespace Raffe;
 public partial class MainWindow : Window
 {
     private bool _isFullscreen;
+    private static readonly WindowChrome FullscreenChrome = new()
+    {
+        CaptionHeight = 0,
+        GlassFrameThickness = new Thickness(0),
+        NonClientFrameEdges = NonClientFrameEdges.None,
+        ResizeBorderThickness = new Thickness(0),
+        UseAeroCaptionButtons = false
+    };
 
     public MainWindow()
     {
@@ -21,6 +32,14 @@ public partial class MainWindow : Window
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
         TrySetTitleBarColor();
+        if (DataContext is MainViewModel vm)
+            vm.PropertyChanged += OnVmPropertyChanged;
+    }
+
+    private void OnVmPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(MainViewModel.ThemeId))
+            TrySetTitleBarColor();
     }
 
     private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
@@ -43,6 +62,16 @@ public partial class MainWindow : Window
         }
     }
 
+    private void CaptionMinimize_Click(object sender, RoutedEventArgs e) => SystemCommands.MinimizeWindow(this);
+    private void CaptionMaximize_Click(object sender, RoutedEventArgs e)
+    {
+        if (WindowState == WindowState.Maximized)
+            SystemCommands.RestoreWindow(this);
+        else
+            SystemCommands.MaximizeWindow(this);
+    }
+    private void CaptionClose_Click(object sender, RoutedEventArgs e) => Close();
+
     // Double-click on the header to toggle fullscreen
     private void Header_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
@@ -55,8 +84,9 @@ public partial class MainWindow : Window
     private void EnterFullscreen()
     {
         _isFullscreen = true;
+        WindowChrome.SetWindowChrome(this, FullscreenChrome);
         WindowStyle = WindowStyle.None;
-        WindowState = WindowState.Normal;   // must reset first
+        WindowState = WindowState.Normal;
         WindowState = WindowState.Maximized;
         ResizeMode = ResizeMode.NoResize;
     }
@@ -64,6 +94,7 @@ public partial class MainWindow : Window
     private void ExitFullscreen()
     {
         _isFullscreen = false;
+        WindowChrome.SetWindowChrome(this, null);
         WindowStyle = WindowStyle.SingleBorderWindow;
         ResizeMode = ResizeMode.CanResizeWithGrip;
         WindowState = WindowState.Maximized;
@@ -77,8 +108,7 @@ public partial class MainWindow : Window
             var hwnd = new WindowInteropHelper(this).Handle;
             if (hwnd == IntPtr.Zero) return;
             const int DWMWA_CAPTION_COLOR = 35;
-            // #1A0800 → DWM wants 0x00BBGGRR → B=0x00 G=0x08 R=0x1A → 0x0000081A
-            var color = 0x0000081A;
+            var color = DataContext is MainViewModel vm ? ThemeSchema.GetCaptionColorBgr(vm.ThemeId) : 0x0000081A;
             DwmSetWindowAttribute(hwnd, DWMWA_CAPTION_COLOR, ref color, sizeof(int));
         }
         catch { }

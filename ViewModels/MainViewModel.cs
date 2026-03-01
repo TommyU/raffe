@@ -37,6 +37,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
     [ObservableProperty] private IReadOnlyList<string> _slideshowImagePaths = new List<string>();
     [ObservableProperty] private int _slideshowIntervalSeconds = 5;
+    [ObservableProperty] private string _themeId = "R3";
     [ObservableProperty] private IReadOnlyList<PrizeResultGroup> _resultGroups = new List<PrizeResultGroup>();
 
     partial void OnIsSpinningChanged(bool value)
@@ -106,6 +107,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
         CompanyName = _dataService.Data.Config.CompanyName;
         Year = _dataService.Data.Config.Year;
+        ThemeId = _dataService.Data.Config.ThemeId ?? "R3";
 
         PrizeLevels.Clear();
         foreach (var prize in _dataService.Data.PrizeLevels.OrderBy(p => p.SortOrder))
@@ -124,6 +126,8 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
         SlideshowImagePaths    = cfg.SlideshowImagePaths?.ToList() ?? new List<string>();
         SlideshowIntervalSeconds = cfg.SlideshowIntervalSeconds;
+        ThemeId = cfg.ThemeId ?? "R3";
+        ThemeSchema.Apply(ThemeId);
         UpdateIdleState();
     }
 

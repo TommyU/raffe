@@ -1,16 +1,26 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
+  <ItemGroup>
+    <Compile Remove="tools\**" />
+    <None Remove="tools\**" />
+  </ItemGroup>
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net6.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
     <RootNamespace>Raffe</RootNamespace>
+    <ApplicationIcon>Assets\raffe.ico</ApplicationIcon>
+    <PackageIcon>logo.jpg</PackageIcon>
+    <UseWindowsForms>True</UseWindowsForms>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="ClosedXML" Version="0.102.2" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\raffe.ico" />
   </ItemGroup>
 
 </Project>

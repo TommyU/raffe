@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
@@ -24,10 +25,12 @@ public partial class SettingsViewModel : ObservableObject
 
     [ObservableProperty] private int     _slideshowIntervalSeconds = 5;
     [ObservableProperty] private string? _selectedSlideshowImage;
+    [ObservableProperty] private string  _themeId = "R3";
 
     public ObservableCollection<string>      SlideshowImagePaths { get; } = new();
     public ObservableCollection<Participant> Participants        { get; } = new();
-    public ObservableCollection<PrizeLevel>  PrizeLevels        { get; } = new();
+    public ObservableCollection<PrizeLevel>  PrizeLevels         { get; } = new();
+    public IReadOnlyList<ThemeSchema> ThemeItems => ThemeSchema.All;
 
     public SettingsViewModel(DataService dataService, ExcelImportService excelService)
     {
@@ -45,6 +48,7 @@ public partial class SettingsViewModel : ObservableObject
         WinnerMusicPath   = _dataService.Data.Config.WinnerMusicPath;
         MusicVolume              = _dataService.Data.Config.MusicVolume;
         SlideshowIntervalSeconds = _dataService.Data.Config.SlideshowIntervalSeconds;
+        ThemeId = _dataService.Data.Config.ThemeId ?? "R3";
 
         SlideshowImagePaths.Clear();
         foreach (var p in _dataService.Data.Config.SlideshowImagePaths ?? new())
@@ -70,6 +74,7 @@ public partial class SettingsViewModel : ObservableObject
         cfg.MusicVolume              = MusicVolume;
         cfg.SlideshowIntervalSeconds = SlideshowIntervalSeconds;
         cfg.SlideshowImagePaths      = SlideshowImagePaths.ToList();
+        cfg.ThemeId                  = ThemeId;
         _dataService.Data.Participants = Participants.ToList();
         _dataService.Data.PrizeLevels  = PrizeLevels.ToList();
         _dataService.Save();

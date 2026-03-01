@@ -15,4 +15,6 @@ public class AppConfig
 
     public List<string> SlideshowImagePaths    { get; set; } = new();
     public int          SlideshowIntervalSeconds { get; set; } = 5;
+
+    public string ThemeId { get; set; } = "R3";
 }

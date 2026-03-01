@@ -2,8 +2,21 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:Raffe"
+             xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
+        <RadialGradientBrush x:Key="ThemeMainBackground" Center="0.5,0.3" RadiusX="0.8" RadiusY="0.7">
+            <GradientStop Color="#D85C28" Offset="0"/>
+            <GradientStop Color="#8B3018" Offset="1"/>
+        </RadialGradientBrush>
+        <SolidColorBrush x:Key="ThemeWindowBackground" Color="#8B3018"/>
+        <RadialGradientBrush x:Key="ThemeResultsBackground" Center="0.5,0.3" RadiusX="0.9" RadiusY="0.8">
+            <GradientStop Color="#D85C28" Offset="0"/>
+            <GradientStop Color="#4A180C" Offset="1"/>
+        </RadialGradientBrush>
+        <shell:WindowChrome x:Key="Chrome"
+            CaptionHeight="36" ResizeBorderThickness="5"
+            GlassFrameThickness="-1" UseAeroCaptionButtons="False"/>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
         <local:InverseBooleanConverter x:Key="InverseBool"/>
         <local:NullToVisibilityConverter x:Key="NullToVisibility"/>

@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="抽奖设置" Height="580" Width="780"
         WindowStartupLocation="CenterOwner"
-        Background="#1A0800">
+        Background="{DynamicResource ThemeWindowBackground}">
     <Grid Margin="20">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -272,6 +272,12 @@
 
             <TabItem Header="基本设置">
                 <StackPanel Margin="20" VerticalAlignment="Top">
+                    <TextBlock Text="界面主题" Foreground="#FFCC77" Margin="0,0,0,6"/>
+                    <ComboBox ItemsSource="{Binding ThemeItems}"
+                              SelectedValue="{Binding ThemeId, UpdateSourceTrigger=PropertyChanged}"
+                              SelectedValuePath="Id"
+                              DisplayMemberPath="Name"
+                              Width="200" HorizontalAlignment="Left" Margin="0,0,0,20"/>
                     <TextBlock Text="公司名称" Foreground="#FFCC77" Margin="0,0,0,6"/>
                     <TextBox Text="{Binding CompanyName, UpdateSourceTrigger=PropertyChanged}" FontSize="14"/>
                     <TextBlock Text="年份" Foreground="#FFCC77" Margin="0,16,0,6"/>
