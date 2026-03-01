@@ -1,5 +1,0 @@
-D:\windows-app\Raffe\tools\GenIcon\obj\Debug\net6.0\GenIcon.csproj.AssemblyReference.cache
-D:\windows-app\Raffe\tools\GenIcon\obj\Debug\net6.0\GenIcon.GeneratedMSBuildEditorConfig.editorconfig
-D:\windows-app\Raffe\tools\GenIcon\obj\Debug\net6.0\GenIcon.AssemblyInfoInputs.cache
-D:\windows-app\Raffe\tools\GenIcon\obj\Debug\net6.0\GenIcon.AssemblyInfo.cs
-D:\windows-app\Raffe\tools\GenIcon\obj\Debug\net6.0\GenIcon.csproj.CoreCompileInputs.cache
